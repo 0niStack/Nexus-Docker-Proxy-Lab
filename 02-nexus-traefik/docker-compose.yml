@@ -1,0 +1,30 @@
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--log.level=INFO"
+      - "--providers.file.directory=/dynamic"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./dynamic:/dynamic:ro
+      - ./certs:/certs:ro
+    depends_on:
+      - nexus
+
+  nexus:
+    image: sonatype/nexus3:3.59.0
+    container_name: nexus
+    restart: unless-stopped
+    volumes:
+      - ./nexus-data:/nexus-data
+    # environment:
+    #   - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g

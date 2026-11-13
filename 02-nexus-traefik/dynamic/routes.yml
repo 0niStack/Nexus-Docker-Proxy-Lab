@@ -1,0 +1,49 @@
+http:
+  routers:
+    nexus-ui:
+      rule: "PathPrefix(`/`)"
+      # DOMAIN MODE:
+      # rule: "Host(`traefik-nexus.example.com`) && PathPrefix(`/`)"
+      priority: 1
+      entryPoints: [websecure]
+      service: nexus-ui
+      tls: {}
+
+    # /v2  -> proxy of DockerHub (Nexus connector 8082)
+    dockerhub:
+      rule: "PathPrefix(`/v2`)"
+      # rule: "Host(`traefik-nexus.example.com`) && PathPrefix(`/v2`)"
+      priority: 10
+      entryPoints: [websecure]
+      service: nexus-dockerhub
+      tls: {}
+
+    # /v2/hosted -> proxy of the 01 Nginx Nexus hosted repo (connector 8083)
+    hosted:
+      rule: "PathPrefix(`/v2/hosted`)"
+      # rule: "Host(`traefik-nexus.example.com`) && PathPrefix(`/v2/hosted`)"
+      priority: 20
+      entryPoints: [websecure]
+      service: nexus-hosted
+      tls: {}
+
+  services:
+    nexus-ui:
+      loadBalancer:
+        servers: [{ url: "http://nexus:8081" }]
+    nexus-dockerhub:
+      loadBalancer:
+        servers: [{ url: "http://nexus:8082" }]
+    nexus-hosted:
+      loadBalancer:
+        servers: [{ url: "http://nexus:8083" }]
+
+tls:
+  certificates:
+    - certFile: /certs/fullchain.pem
+      keyFile: /certs/privkey.pem
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /certs/fullchain.pem
+        keyFile: /certs/privkey.pem

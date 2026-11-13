@@ -1,0 +1,23 @@
+services:
+  nginx:
+    image: nginx:1.27
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - nexus
+
+  nexus:
+    image: sonatype/nexus3:3.59.0
+    container_name: nexus
+    restart: unless-stopped
+    volumes:
+      - ./nexus-data:/nexus-data
+    # Optional for small VMs:
+    # environment:
+    #   - INSTALL4J_ADD_VM_PARAMS=-Xms1g -Xmx2g -XX:MaxDirectMemorySize=2g
